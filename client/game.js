@@ -7,10 +7,8 @@ let currentPlayer = 'A';
 let selectedCell = null;
 let gameEnded = false;
 
-// Initialize the WebSocket connection
 const socket = new WebSocket('ws://localhost:3000');
 
-// Initialize the game board
 let board = [
     ['A-P1', 'A-P2', 'A-H1', 'A-H2', 'A-P3'],
     [null, null, null, null, null],
@@ -19,7 +17,6 @@ let board = [
     ['B-P1', 'B-P2', 'B-H1', 'B-H2', 'B-P3']
 ];
 
-// Create the board in the UI
 function createBoard() {
     boardElement.innerHTML = '';
     for (let row = 0; row < boardSize; row++) {
@@ -35,7 +32,6 @@ function createBoard() {
     }
 }
 
-// Handle cell selection
 function selectCell(row, col) {
     if (gameEnded) return;
 
@@ -51,7 +47,6 @@ function selectCell(row, col) {
     }
 }
 
-// Update the UI for the selected cell
 function updateSelected() {
     const cells = document.querySelectorAll('.cell');
     cells.forEach(cell => cell.classList.remove('selected'));
@@ -62,13 +57,11 @@ function updateSelected() {
     }
 }
 
-// Enable or disable move buttons and highlight available moves
 function clearHighlights() {
     const buttons = document.querySelectorAll('.controls button');
     buttons.forEach(button => button.classList.remove('highlight'));
 }
 
-// Function to highlight possible move cells
 function highlightMoves(moves, directionButtons) {
     clearHighlights();
     directionButtons.forEach(buttonId => {
@@ -79,7 +72,6 @@ function highlightMoves(moves, directionButtons) {
     });
 }
 
-// Update available moves and highlight them
 function updateAvailableMoves(piece) {
     let possibleMoves = [];
     let directionButtons = [];
@@ -95,11 +87,9 @@ function updateAvailableMoves(piece) {
         directionButtons = ['FL', 'FR', 'BL', 'BR'];
     }
 
-    // Highlight the possible moves
     highlightMoves(possibleMoves, directionButtons);
 }
 
-// Function to get possible move positions
 function getPossibleMoves(directions) {
     const { row, col } = selectedCell;
     let possibleMoves = [];
@@ -144,7 +134,6 @@ function getPossibleMoves(directions) {
     return possibleMoves;
 }
 
-// Move a piece based on direction
 function movePiece(direction) {
     if (!selectedCell || gameEnded) return;
 
@@ -196,11 +185,9 @@ function movePiece(direction) {
     checkWinCondition();
     changeTurn();
 
-    // Send the move to the server
     socket.send(JSON.stringify({ action: 'update', data: { board, currentPlayer } }));
 }
 
-// Change the turn to the opponent
 function changeTurn() {
     currentPlayer = opponent();
     if (!gameEnded) {
@@ -208,19 +195,16 @@ function changeTurn() {
     }
 }
 
-// Get the opponent player
 function opponent() {
     return currentPlayer === 'A' ? 'B' : 'A';
 }
 
-// Log a move in the history section
 function logMove(move) {
     const moveElement = document.createElement('div');
     moveElement.innerText = move;
     historyElement.appendChild(moveElement);
 }
 
-// Check if there is a win condition
 function checkWinCondition() {
     const remainingOpponents = board.flat().filter(cell => cell && cell.startsWith(opponent()));
     if (remainingOpponents.length === 0) {
@@ -231,7 +215,6 @@ function checkWinCondition() {
     }
 }
 
-// Attach move functionality to buttons
 document.getElementById('L').onclick = () => movePiece('L');
 document.getElementById('R').onclick = () => movePiece('R');
 document.getElementById('F').onclick = () => movePiece('F');
@@ -241,13 +224,12 @@ document.getElementById('FR').onclick = () => movePiece('FR');
 document.getElementById('BL').onclick = () => movePiece('BL');
 document.getElementById('BR').onclick = () => movePiece('BR');
 
-// Handle messages from the server
 socket.onmessage = (event) => {
     const { action, data } = JSON.parse(event.data);
     if (action === 'update') {
         board = data.board;
         currentPlayer = data.currentPlayer;
-        gameEnded = false; // reset gameEnded based on server data
+        gameEnded = false; 
         createBoard();
         updateSelected();
     } else if (action === 'win') {
@@ -257,5 +239,4 @@ socket.onmessage = (event) => {
     }
 };
 
-// Initialize the game board
 createBoard();
